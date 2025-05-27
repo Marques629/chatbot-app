@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    #chat {
+      width: 100%;
+      max-width: 600px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      height: 400px;
+      overflow-y: auto;
+    }
+
+    .user, .bot {
+      padding: 8px;
+      margin: 4px;
+      border-radius: 5px;
+    }
+
+    .user {
+      background-color: #d1e7dd;
+      text-align: right;
+    }
+
+    .bot {
+      background-color: #f8d7da;
+      text-align: left;
+    }
+
+    #input {
+      width: calc(100% - 100px);
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    #sendBtn {
+      padding: 10px;
+      font-size: 16px;
+      margin-left: 5px;
+    }
+
+    .input-container {
+      display: flex;
+      max-width: 600px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>Chatbot</h2>
+
+  <div id="chat"></div>
+
+  <div class="input-container">
+    <input type="text" id="input" placeholder="Nachricht eingeben..." onkeypress="handleKey(event)" />
+    <button id="sendBtn" onclick="sendMessage()">Senden</button>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("input");
+      const chat = document.getElementById("chat");
+      const userMessage = input.value.trim();
+
+      if (!userMessage) return;
+
+      // Benutzernachricht anzeigen
+      chat.innerHTML += `<div class="user">${userMessage}</div>`;
+
+      // Nachricht an Flask senden
+      try {
+        const response = await fetch("http://127.0.0.1:5000/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: userMessage }),
+        });
+
+        const data = await response.json();
+
+        // Antwort des Bots anzeigen
+        chat.innerHTML += `<div class="bot">${data.response}</div>`;
+      } catch (error) {
+        chat.innerHTML += `<div class="bot">Fehler: Keine Verbindung zum Server</div>`;
+        console.error("Fehler beim Senden:", error);
+      }
+
+      // Scroll runter und Eingabefeld leeren
+      chat.scrollTop = chat.scrollHeight;
+      input.value = "";
+    }
+
+    function handleKey(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    }
+  </script>
+</body>
+</html>
